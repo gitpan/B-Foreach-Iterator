@@ -5,6 +5,8 @@ use inc::Module::Install;
 name 'B-Foreach-Iterator';
 all_from 'lib/B/Foreach/Iterator.pm';
 
+requires 'Exporter' => 5.57;
+
 build_requires 'ExtUtils::ParseXS';
 
 test_requires 'Test::More' => 0.62;

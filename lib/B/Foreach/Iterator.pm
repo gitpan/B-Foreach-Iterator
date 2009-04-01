@@ -3,10 +3,10 @@ package B::Foreach::Iterator;
 use 5.008_001;
 use strict;
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 use Exporter qw(import);
-our @EXPORT = qw(iter_inc iter_next);
+our @EXPORT = qw(iter);
 
 use XSLoader;
 XSLoader::load(__PACKAGE__, $VERSION);
@@ -21,14 +21,14 @@ B::Foreach::Iterator - Increases foreach iterators
 
 =head1 VERSION
 
-This document describes B::Foreach::Iterator version 0.01.
+This document describes B::Foreach::Iterator version 0.02.
 
 =head1 SYNOPSIS
 
 	use B::Foreach::Iterator;
 
-	for my $key(foo => 10, bar => 20, baz => 30){
-		printf "%s => %s\n", $key => iter_inc;
+	foreach my $key(foo => 10, bar => 20, baz => 30){
+		printf "%s => %s\n", $key => iter->next;
 	}
 
 =head1 DESCRIPTION
@@ -41,14 +41,32 @@ C<B::Foreach::Iterator> provides functions that manipulate C<foreach> iterators.
 
 =over 4
 
-=item iter_inc()
+=item iter(?$label)
 
-Increases the iterator of current C<foreach> loops and returns its value.
+Finds a C<foreach> iterator, and returns it. You can supply a I<$label> if
+necessary.
 
-=item iter_next()
+If no iterators are found, it dies.
 
-Returns the value of the next iterator of current C<foreach> loops. Does not
-increases the iterator.
+=back
+
+=head2 Instance methods
+
+=over 4
+
+=item I<$iterator>-E<gt>next()
+
+Increases I<$iterator> and returns its value.
+
+=item I<$iter>-E<gt>peek()
+
+Returns the value of the next iterator.
+
+=item I<$iter>-E<gt>label()
+
+Returns the label of I<$iterator>.
+
+If I<$iterator> has no labels, it returns C<undef>.
 
 =back
 

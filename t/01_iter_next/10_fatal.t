@@ -6,7 +6,7 @@ use Test::More tests => 3;
 use B::Foreach::Iterator;
 
 eval{
-	iter_inc;
+	iter->next;
 };
 
 like $@, qr/No foreach loops found/;
@@ -14,7 +14,7 @@ like $@, qr/No foreach loops found/;
 eval{
 	while(1){
 
-		iter_inc;
+		iter->next;
 
 		last;
 	}
@@ -25,7 +25,7 @@ like $@, qr/No foreach loops found/;
 eval{
 	for(;;){
 
-		iter_inc;
+		iter->next;
 
 		last;
 	}

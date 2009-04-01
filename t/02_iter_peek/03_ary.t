@@ -10,7 +10,7 @@ my @ary;
 
 @ary = (11 .. 15);
 foreach (@ary){
-	push @next, iter_next;
+	push @next, iter->peek;
 }
 
 is_deeply \@next, [12 .. 15, undef];
