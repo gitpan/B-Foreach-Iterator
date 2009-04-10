@@ -1,9 +1,9 @@
 package B::Foreach::Iterator;
 
-use 5.008_001;
+use 5.008_008;
 use strict;
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
 use Exporter qw(import);
 our @EXPORT = qw(iter);
@@ -17,11 +17,11 @@ __END__
 
 =head1 NAME
 
-B::Foreach::Iterator - Increases foreach iterators
+B::Foreach::Iterator - Manipulates foreach iterators
 
 =head1 VERSION
 
-This document describes B::Foreach::Iterator version 0.02.
+This document describes B::Foreach::Iterator version 0.03.
 
 =head1 SYNOPSIS
 
@@ -72,7 +72,7 @@ If I<$iterator> has no labels, it returns C<undef>.
 
 =head1 DEPENDENCIES
 
-Perl 5.8.1 or later, and a C compiler.
+Perl 5.8.8 or later, and a C compiler.
 
 =head1 BUGS
 
@@ -84,11 +84,17 @@ Please report any bugs or feature requests to the author.
 
 L<perlguts>.
 
-F<pp_hot.c>.
+F<pp_hot.c> for C<pp_iter()>.
+
+F<cop.h> for C<struct block_loop> and C<struct context>.
 
 =head1 AUTHOR
 
 Goro Fuji E<lt>gfuji(at)cpan.orgE<gt>.
+
+=head1 ACKNOWLEDGEMENTS
+
+Thanks to Hans Dieter Pearcey(HDP) for his suggestions.
 
 =head1 LICENSE AND COPYRIGHT
 

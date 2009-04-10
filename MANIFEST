@@ -1,3 +1,4 @@
+benchmark/iter_next.pl
 Changes
 example/iterator.pl
 example/synopsis.pl
@@ -30,6 +31,8 @@ t/02_iter_peek/05_multi.t
 t/03_iter/00_object.t
 t/03_iter/01_nest.t
 t/03_iter/02_label.t
+t/03_iter/03_cache.t
+t/03_iter/10_leaktrace.t
 xt/01_podspell.t
 xt/02_pod.t
 xt/03_pod-coverage.t

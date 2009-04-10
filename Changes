@@ -1,6 +1,11 @@
 Revision history for Perl extension B::Foreach::Iterator
 
-0.02
+0.03 Wed Apr  8 17:30:16 2009
+	- require perl v5.8.8
+	- fix some bugs
+	- improve performance
+
+0.02 Wed Apr  1 17:10:12 2009
 	- IMCOMPATIBLE CHANGES
 		- rename iter_inc()  => iter->next()
 		- rename iter_next() => iter->peek()

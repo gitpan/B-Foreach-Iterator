@@ -1,9 +1,10 @@
 ---
-abstract: 'Increases foreach iterators'
+abstract: 'Manipulates foreach iterators'
 author:
   - 'Goro Fuji <gfuji(at)cpan.org>.'
 build_requires:
   ExtUtils::ParseXS: 0
+  Test::LeakTrace: 0.08
   Test::More: 0.62
 configure_requires:
   ExtUtils::MakeMaker: 6.44
@@ -20,7 +21,7 @@ no_index:
     - t
 requires:
   Exporter: 5.57
-  perl: 5.8.1
+  perl: 5.8.8
 resources:
   license: http://dev.perl.org/licenses/
-version: 0.02
+version: 0.03

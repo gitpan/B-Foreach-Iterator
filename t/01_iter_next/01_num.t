@@ -1,7 +1,7 @@
 #!perl -w
 
 use strict;
-use Test::More tests => 4;
+use Test::More tests => 7;
 
 use B::Foreach::Iterator;
 
@@ -14,7 +14,9 @@ is_deeply \@next, [2, 4, undef];
 
 @next = ();
 foreach my $i(5 .. 10){
+	my $old = $i;
 	push @next, iter->next;
+	is $i, $old;
 }
 is_deeply \@next, [6, 8, 10];
 
