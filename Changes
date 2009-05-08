@@ -1,5 +1,8 @@
 Revision history for Perl extension B::Foreach::Iterator
 
+0.04
+	- add is_last() method
+
 0.03 Wed Apr  8 17:30:16 2009
 	- require perl v5.8.8
 	- fix some bugs

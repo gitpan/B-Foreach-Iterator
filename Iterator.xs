@@ -89,8 +89,6 @@ MODULE = B::Foreach::Iterator	PACKAGE = B::Foreach::Iterator
 
 PROTOTYPES: DISABLE
 
-#define need_increment ix
-
 SV*
 iter(label = NULL)
 PREINIT:
@@ -102,20 +100,23 @@ CODE:
 OUTPUT:
 	RETVAL
 
+#define need_increment (ix == 0)
+
 SV*
 next(SVREF iterator)
 ALIAS:
-	next = TRUE
-	peek = FALSE
+	next    = 0
+	peek    = 1
+	is_last = 2
 PREINIT:
 	PERL_CONTEXT* cx;
 	SV** itersvp;
 	AV*  iterary;
 CODE:
-	RETVAL  = NULL;
 	cx      = my_find_cx(aTHX_ INT2PTR(OP*, SvIV(iterator)));
 	itersvp = CxITERVAR(cx);
 	iterary = CxITERARY(cx);
+	RETVAL  = NULL;
 
 	/* see also pp_iter() in pp_hot.c */
 	if (SvTYPE(iterary) != SVt_PVAV) { /* foreach(min .. max) */
@@ -125,9 +126,10 @@ CODE:
 
 			if (strNE(SvPV_nolen_const(cur), "0")){
 				if(need_increment){
+					dXSTARG;
 					SV* const max = (SV*)iterary;
 
-					RETVAL = sv_newmortal();
+					RETVAL = TARG;
 					sv_setsv(RETVAL, cur);
 
 					if(sv_eq(cur, max)){
@@ -144,7 +146,8 @@ CODE:
 		}
 		else { /* integer range */
 			if (cx->blk_loop.iterix <= cx->blk_loop.itermax){
-				RETVAL = sv_newmortal();
+				dXSTARG;
+				RETVAL = TARG;
 				sv_setiv(RETVAL, cx->blk_loop.iterix);
 			}
 
@@ -171,7 +174,16 @@ CODE:
 		}
 	}
 
-	ST(0) = RETVAL ? RETVAL : &PL_sv_undef;
+	if(ix != 2){ /* next(), peek() */
+		if(!RETVAL){
+			RETVAL = &PL_sv_undef;
+		}
+	}
+	else{ /* is_last() */
+		RETVAL = (RETVAL == NULL) ? &PL_sv_yes : &PL_sv_no;
+	}
+
+	ST(0) = RETVAL;
 	XSRETURN(1);
 
 

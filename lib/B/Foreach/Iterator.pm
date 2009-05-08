@@ -3,7 +3,7 @@ package B::Foreach::Iterator;
 use 5.008_008;
 use strict;
 
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 
 use Exporter qw(import);
 our @EXPORT = qw(iter);
@@ -21,7 +21,7 @@ B::Foreach::Iterator - Manipulates foreach iterators
 
 =head1 VERSION
 
-This document describes B::Foreach::Iterator version 0.03.
+This document describes B::Foreach::Iterator version 0.04.
 
 =head1 SYNOPSIS
 
@@ -61,6 +61,10 @@ Increases I<$iterator> and returns its value.
 =item I<$iter>-E<gt>peek()
 
 Returns the value of the next iterator.
+
+=item I<$iter>-E<gt>is_last()
+
+Returns whether the foreach loop iteration is last or not.
 
 =item I<$iter>-E<gt>label()
 

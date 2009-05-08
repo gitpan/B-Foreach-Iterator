@@ -33,6 +33,11 @@ t/03_iter/01_nest.t
 t/03_iter/02_label.t
 t/03_iter/03_cache.t
 t/03_iter/10_leaktrace.t
+t/04_iter_is_last/01_num.t
+t/04_iter_is_last/02_str.t
+t/04_iter_is_last/03_ary.t
+t/04_iter_is_last/04_mgary.t
+t/04_iter_is_last/05_multi.t
 xt/01_podspell.t
 xt/02_pod.t
 xt/03_pod-coverage.t
