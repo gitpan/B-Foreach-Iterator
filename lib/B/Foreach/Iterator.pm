@@ -3,7 +3,7 @@ package B::Foreach::Iterator;
 use 5.008_008;
 use strict;
 
-our $VERSION = '0.04';
+our $VERSION = '0.05';
 
 use Exporter qw(import);
 our @EXPORT = qw(iter);
@@ -21,7 +21,7 @@ B::Foreach::Iterator - Manipulates foreach iterators
 
 =head1 VERSION
 
-This document describes B::Foreach::Iterator version 0.04.
+This document describes B::Foreach::Iterator version 0.05.
 
 =head1 SYNOPSIS
 

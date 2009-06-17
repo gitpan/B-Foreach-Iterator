@@ -1,6 +1,9 @@
 Revision history for Perl extension B::Foreach::Iterator
 
-0.04
+0.05 Mon Jun 15 22:27:42 2009
+	- update ppport.h to 3.19
+
+0.04 Mon Jun 15 22:27:28 2009
 	- add is_last() method
 
 0.03 Wed Apr  8 17:30:16 2009

@@ -3,21 +3,8 @@
 #include <perl.h>
 #include <XSUB.h>
 
+#define NEED_newSV_type
 #include "ppport.h"
-
-#ifndef gv_stashpvs
-#define gv_stashpvs(name, flags) Perl_gv_stashpvn(aTHX_ STR_WITH_LEN(name), flags)
-#endif
-
-#ifndef newSV_type
-#define newSV_type(t) my_newSV_type(aTHX_ t)
-static SV*
-my_newSV_type(pTHX_ svtype const svt){
-	SV* const sv = newSV(0);
-	sv_upgrade(sv, svt);
-	return sv;
-}
-#endif
 
 #ifndef CxLABEL
 #define CxLABEL(cx) ((cx)->blk_loop.label)
@@ -34,7 +21,6 @@ my_newSV_type(pTHX_ svtype const svt){
 #ifndef CX_LOOP_NEXTOP_GET
 #define CX_LOOP_NEXTOP_GET(cx) ((cx)->blk_loop.next_op)
 #endif
-
 
 #define LoopIsReversed(cx) (CX_LOOP_NEXTOP_GET(cx)->op_next->op_private & OPpITER_REVERSED ? TRUE : FALSE)
 
@@ -180,7 +166,7 @@ CODE:
 		}
 	}
 	else{ /* is_last() */
-		RETVAL = (RETVAL == NULL) ? &PL_sv_yes : &PL_sv_no;
+		RETVAL = boolSV(RETVAL == NULL);
 	}
 
 	ST(0) = RETVAL;
