@@ -14,12 +14,32 @@
 #define CxFOREACH(cx) (CxTYPE(cx) == CXt_LOOP && CxITERVAR(cx) != NULL)
 #endif
 
-#ifndef CxITERARY
-#define CxITERARY(cx) ((cx)->blk_loop.iterary)
-#endif
-
 #ifndef CX_LOOP_NEXTOP_GET
 #define CX_LOOP_NEXTOP_GET(cx) ((cx)->blk_loop.next_op)
+#endif
+
+#ifdef CXt_LOOP_FOR /* >= 5.11 */
+#define CxLOOP_FOR(cx)    (CxTYPE(cx) == CXt_LOOP_FOR)
+#define CxLOOP_LAZYSV(cx) (CxTYPE(cx) == CXt_LOOP_LAZYSV)
+
+#define CxITERARY(cx)     ((cx)->blk_loop.state_u.ary.ary)
+#define CxITERARY_IS_STACK(cx) (CxITERARY(cx) == NULL)
+#define CxITERIX(cx)      ((cx)->blk_loop.state_u.ary.ix)
+#define CxLAZYSV_CUR(cx)  ((cx)->blk_loop.state_u.lazysv.cur)
+#define CxLAZYSV_END(cx)  ((cx)->blk_loop.state_u.lazysv.end)
+#define CxLAZYIV_CUR(cx)  ((cx)->blk_loop.state_u.lazyiv.cur)
+#define CxLAZYIV_END(cx)  ((cx)->blk_loop.state_u.lazyiv.end)
+#else
+#define CxLOOP_FOR(cx)    (SvTYPE(CxITERARY(cx)) == SVt_PVAV)
+#define CxLOOP_LAZYSV(cx) ((cx)->blk_loop.iterlval != NULL)
+
+#define CxITERARY(cx)     ((cx)->blk_loop.iterary)
+#define CxITERARY_IS_STACK(cx) (CxITERARY(cx) == PL_curstack)
+#define CxITERIX(cx)      ((cx)->blk_loop.iterix)
+#define CxLAZYSV_CUR(cx)  ((cx)->blk_loop.iterlval)
+#define CxLAZYSV_END(cx)  ((SV*)(cx)->blk_loop.iterary)
+#define CxLAZYIV_CUR(cx)  ((cx)->blk_loop.iterix)
+#define CxLAZYIV_END(cx)  ((cx)->blk_loop.itermax)
 #endif
 
 #define LoopIsReversed(cx) (CX_LOOP_NEXTOP_GET(cx)->op_next->op_private & OPpITER_REVERSED ? TRUE : FALSE)
@@ -27,6 +47,7 @@
 
 static PERL_CONTEXT*
 my_find_cx(pTHX_ const OP* const loop_op){
+	dVAR;
 	PERL_CONTEXT* const cxstk = cxstack;
 	I32 i;
 	for (i = cxstack_ix; i >= 0; i--) {
@@ -42,7 +63,8 @@ my_find_cx(pTHX_ const OP* const loop_op){
 
 static PERL_CONTEXT*
 my_find_foreach(pTHX_ SV* const label){
-	PERL_CONTEXT* const cxstk = cxstack;
+	dVAR;
+	PERL_CONTEXT* const cxstk  = cxstack;
 	const char* const label_pv = SvOK(label) ? SvPV_nolen_const(label) : NULL;
 	I32 i;
 
@@ -88,6 +110,14 @@ OUTPUT:
 
 #define need_increment (ix == 0)
 
+#define ITERMAX(cx) (av_is_stack ? cx->blk_oldsp : AvFILL(av))
+
+#ifdef CXt_LOOP_FOR
+#define ITERMIN(cx) (av_is_stack ? cx->blk_loop.resetsp + 1 : 0)
+#else
+#define ITERMIN(cx) (cx->blk_loop.itermax)
+#endif
+
 SV*
 next(SVREF iterator)
 ALIAS:
@@ -96,29 +126,44 @@ ALIAS:
 	is_last = 2
 PREINIT:
 	PERL_CONTEXT* cx;
-	SV** itersvp;
-	AV*  iterary;
 CODE:
 	cx      = my_find_cx(aTHX_ INT2PTR(OP*, SvIV(iterator)));
-	itersvp = CxITERVAR(cx);
-	iterary = CxITERARY(cx);
 	RETVAL  = NULL;
 
 	/* see also pp_iter() in pp_hot.c */
-	if (SvTYPE(iterary) != SVt_PVAV) { /* foreach(min .. max) */
+	if(CxLOOP_FOR(cx)) { /* foreach(list) */
+		bool const av_is_stack = CxITERARY_IS_STACK(cx);
+		AV*  const av          = av_is_stack ? PL_curstack : CxITERARY(cx);
+		bool const reversed    = LoopIsReversed(cx);
+		bool const in_range    = reversed ? (--CxITERIX(cx) >= ITERMIN(cx))
+		                                  : (++CxITERIX(cx) <= ITERMAX(cx));
 
-		if(cx->blk_loop.iterlval) { /* non-integer range (e.g. 'a' .. 'z') */
-			SV* const cur = cx->blk_loop.iterlval;
+		if (in_range){
+			if (SvMAGICAL(av) || AvREIFY(av)){
+				SV** const svp = av_fetch(av, CxITERIX(cx), FALSE);
+				if(svp) RETVAL = *svp;
+			}
+			else{
+				RETVAL = AvARRAY(av)[CxITERIX(cx)];
+			}
+		}
+
+		if (!need_increment){
+			reversed ? ++CxITERIX(cx) : --CxITERIX(cx);
+		}
+	}
+	else { /* foreach (min .. max) */
+		if(CxLOOP_LAZYSV(cx)) {
+			SV* const cur = CxLAZYSV_CUR(cx);
 
 			if (strNE(SvPV_nolen_const(cur), "0")){
 				if(need_increment){
 					dXSTARG;
-					SV* const max = (SV*)iterary;
 
 					RETVAL = TARG;
 					sv_setsv(RETVAL, cur);
 
-					if(sv_eq(cur, max)){
+					if(sv_eq(cur, CxLAZYSV_END(cx))){
 						sv_setiv(cur, 0);
 					}
 					else{
@@ -130,33 +175,14 @@ CODE:
 				}
 			}
 		}
-		else { /* integer range */
-			if (cx->blk_loop.iterix <= cx->blk_loop.itermax){
+		else { /* LOOP_LAZYIV */
+			if (CxLAZYIV_CUR(cx) <= CxLAZYIV_END(cx)){
 				dXSTARG;
 				RETVAL = TARG;
-				sv_setiv(RETVAL, cx->blk_loop.iterix);
+				sv_setiv(RETVAL, CxLAZYIV_CUR(cx));
 			}
 
-			if (need_increment) cx->blk_loop.iterix++;
-		}
-	}
-	else { /* foreach (@array) or foreach (list) */
-		bool const reversed = LoopIsReversed(cx);
-		bool const in_range = reversed ? (--cx->blk_loop.iterix >= ( cx->blk_loop.itermax ) /* min */ )
-		                               : (++cx->blk_loop.iterix <= ( iterary == PL_curstack ? cx->blk_oldsp : av_len(iterary)) /* max */ );
-
-		if (in_range){
-			if (SvMAGICAL(iterary) || AvREIFY(iterary)){
-				SV** const svp = av_fetch(iterary, cx->blk_loop.iterix, FALSE);
-				if(svp) RETVAL = *svp;
-			}
-			else{
-				RETVAL = AvARRAY(iterary)[cx->blk_loop.iterix];
-			}
-		}
-
-		if (!need_increment){
-			reversed ? ++cx->blk_loop.iterix : --cx->blk_loop.iterix;
+			if (need_increment) CxLAZYIV_CUR(cx)++;
 		}
 	}
 
