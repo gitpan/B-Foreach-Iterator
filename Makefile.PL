@@ -2,12 +2,10 @@ use strict;
 use warnings;
 use inc::Module::Install;
 
-name 'B-Foreach-Iterator';
 all_from 'lib/B/Foreach/Iterator.pm';
 
-requires 'Exporter' => 5.57;
-
-build_requires 'ExtUtils::ParseXS';
+use_ppport();
+cc_warnings();
 
 test_requires 'Test::More'      => 0.62;
 test_requires 'Test::LeakTrace' => 0.08;
@@ -15,13 +13,11 @@ test_requires 'Test::LeakTrace' => 0.08;
 tests 't/*.t t/*/*.t';
 author_tests 'xt';
 
-WriteMakefile(
-	OBJECT => '$(O_FILES)',
+clean_files q{
+    B-Foreach-Iterator-* *.stackdump
+    *.gcda *.gcno *.gcov
+    nytprof *.out
+    cover_db
+};
 
-	clean  => {FILES => q(
-		B-Foreach-Iterator-* *.stackdump
-		*.gcda *.gcno *.gcov
-		nytprof *.out
-		cover_db
-	)},
-);
+WriteAll(check_nmake => 0);
